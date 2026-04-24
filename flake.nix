@@ -50,12 +50,43 @@
             })
           ];
         };
+        arm = pkgs.pkgsCross.arm-embedded.buildPackages;
       in {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             stm32cubeide
+            stlink
+            openocd
             clang-tools
             bear
+            usbutils
+
+            arm.gdb
+            arm.binutils
+            arm.gcc
+
+            (pkgs.writeShellScriptBin "debug" ''
+              openocd -f interface/stlink.cfg -f target/stm32f4x.cfg &
+              sleep 1
+              arm-none-eabi-gdb -ex "target extended-remote localhost:3333" "$1"
+              pkill openocd
+            '')
+            (pkgs.writeShellScriptBin "flash" ''
+              CUBE_DIR=${stm32cubeide}
+              PLUGIN_DIR="$CUBE_DIR/share/stm32cubeide/plugins"
+              TOOLCHAIN_DIR=$(ls -d $PLUGIN_DIR/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.*/tools/bin 2>/dev/null | head -1)
+              if [ -z "$TOOLCHAIN_DIR" ]; then
+                echo "ST toolchain not found inside $PLUGIN_DIR"
+                exit 1
+              fi
+              export PATH="$TOOLCHAIN_DIR:$PATH"
+              pushd led/Debug
+              # find . -type f -exec sed -i 's/-fcyclomatic-complexity//g' {} \;
+              make clean
+              make -j12 all
+              openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c "program led.elf verify reset exit"
+              popd
+            '')
           ];
         };
       };

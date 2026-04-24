@@ -1,0 +1,39 @@
+# Nix / direnv (keep flake.lock)
+.direnv/
+.result
+*.drv
+
+# STM32CubeIDE & Eclipse
+.metadata/
+.cproject
+.project
+.settings/
+*.launch
+*.cyclo
+*.su
+*.o
+*.d
+*.elf
+*.map
+*.list
+*.bin
+*.hex
+*.srec
+Debug/
+Release/
+build/
+
+# ARM toolchain / linker artifacts
+*.ld.bak
+*.ld.orig
+
+# Editor backups
+*~
+*.swp
+*.swo
+\#*#
+.#*
+
+# OS generated files
+.DS_Store
+Thumbs.db
